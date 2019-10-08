@@ -1,9 +1,13 @@
 #ifndef __BATALLA_H__
 #define __BATALLA_H__
+#include <stdbool.h>
+
 
 #define MAX_TERRENO_FIL 10
 #define MAX_TERRENO_COL 10
-#define MAX_PERSONAJES 182
+#define MAX_PERSONAJES 60
+
+const int LLEGADAS_GANAR = 5;
 
 typedef struct jugador{
   char bando;
@@ -19,6 +23,8 @@ typedef struct personaje {
 	int ataque;
 	int fila;
 	int columna;
+  bool muerto;
+  bool llego;
 	// Pueden agregar los campos que deseen
 } personaje_t;
 
@@ -59,9 +65,14 @@ void posicionar_personaje(juego_t* juego, personaje_t personaje);
  */
 void jugar(juego_t* juego, char bando, int posicion_personaje);
 
-
+/*
+*
+*/
 void cargar_personajes( juego_t* juego);
 
-
+/*
+*
+*/
 void imprimir_matriz(char terreno [MAX_TERRENO_FIL][MAX_TERRENO_COL]);
+
 #endif /* __BATALLA_H__ */

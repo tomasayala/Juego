@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "batalla_.h"
+#include <stdbool.h>
 
 const char ISENGARD = 'I'; // Valor ofensivo reprensentado por Isengrad
 const char ROHAN = 'R'; // Valor defensivo representado por Rohan
@@ -24,10 +25,14 @@ const int FILA_MINIMA_ROHAN = 5; /* Cambia si cambia el numero de MAX_TERRENO_FI
 const int FILA_MINIMA_URUKHAI = 1;
 const int FILA_INICIAL_ORCOS = 0;
 const int FILA_INICIAL_HOMBRE = 9; /* Cambiar si cambia el numero maximo de MAX_TERRENO_FIL (MAX_TERRENO_FIL -1) */
+const int FILA_LLEGADAS_ROHAN = 0;
+const int FILA_LLEGADAS_ISENGARD = 9;  /* Cambiar si cambia el numero maximo de MAX_TERRENO_FIL (MAX_TERRENO_FIL -1) */
 const int VIDA_ELFOS_URUKHAI = 200;
 const int VIDA_HOMBRES_ORCOS = 100;
+const int SIN_VIDA = 0;
 const int ATAQUE_ELFOS_URUKHAI = 10;
 const int ATAQUE_HOMBRES_ORCOS = 50;
+const int RANGO_ARQUEROS_MANHATTAN = 3;
 
 void asignar_plus ( jugador_t jugador1, jugador_t jugador2, int* plus_rohan, int* plus_isengard  ){
   int num_random_rohan = rand() % RANGO_PLUS;
@@ -51,6 +56,8 @@ void inicilizar_jugadores ( jugador_t* jugador1, jugador_t* jugador2 , int* plus
   } asignar_plus ( *jugador1, *jugador2, plus_rohan, plus_isengard );
   jugador1 ->energia = ENERGIA_INICIAL;
   jugador2 -> energia = ENERGIA_INICIAL;
+  jugador1->gano = false;
+  jugador2->gano = false;
   if ( jugador1->bando == ROHAN ){
     jugador1->plus = *plus_rohan;
     jugador2->plus = *plus_isengard;
@@ -67,12 +74,16 @@ void inicializar_unidades_iniciales ( personaje_t rohan [MAX_PERSONAJES], person
     rohan[i]. ataque = ATAQUE_ELFOS_URUKHAI + plus_rohan;
     rohan [i]. fila = rand() % RANGO_ALEATORIO_INICIALES_FILAS + FILA_MINIMA_ROHAN ;
     rohan [i]. columna = rand() % RANGO_ALEATORIO_INICIALES_COLUMNAS;
+    rohan[i].muerto = false;
+    rohan[i].llego = false;
   }for (size_t j = 0; j < tope_isengard; j++) {
     isengard [j]. codigo = URUKHAI;
     isengard [j]. vida = VIDA_ELFOS_URUKHAI - plus_isengard;
     isengard [j]. ataque = ATAQUE_ELFOS_URUKHAI + plus_isengard;
     isengard [j]. fila = rand() % RANGO_ALEATORIO_INICIALES_FILAS + FILA_MINIMA_URUKHAI;
     isengard [j]. columna = rand() % RANGO_ALEATORIO_INICIALES_COLUMNAS;
+    isengard[j].muerto = false;
+    isengard[j].llego = false;
   }
 }
 
@@ -120,11 +131,15 @@ void inicializar_juego(juego_t* juego){
    scanf(" %i", columna);
  }
 
+void validar_filas_columnas(  )
+
  void cargar_hombres_orcos(personaje_t unidades[MAX_PERSONAJES], int tope_unidades, int plus, char personaje_cargar){
    unidades[tope_unidades]. codigo = personaje_cargar;
    unidades[tope_unidades]. codigo = personaje_cargar;
    unidades[tope_unidades]. vida = VIDA_HOMBRES_ORCOS - plus;
    unidades[tope_unidades]. ataque = ATAQUE_HOMBRES_ORCOS + plus;
+   unidades[tope_unidades]. muerto = false;
+   unidades[tope_unidades]. llego = false;
    printf("En que columna arrancara la infateria? Elija un numero del 0 al 9 para elegir su columna, siendo 0 la 1era y 9 la ultima\n");
    scanf("%i",&unidades[tope_unidades].columna );
  }
@@ -133,7 +148,10 @@ void inicializar_juego(juego_t* juego){
   unidades[tope_unidades]. codigo = personaje_cargar;
   unidades[tope_unidades]. vida = VIDA_ELFOS_URUKHAI - plus;
   unidades[tope_unidades]. ataque = ATAQUE_ELFOS_URUKHAI + plus;
+  unidades[tope_unidades]. muerto = false;
+  unidades[tope_unidades]. llego = false;
   ingresar_filas_columnas( &unidades[tope_unidades].fila, &unidades[tope_unidades].columna );
+  validar_filas_columnas( unidades[tope_unidades].codigo, &unidades[tope_unidades].fila, &unidades[tope_unidades].columna );
 }
 
 void cargar_personajes_rohan ( jugador_t* jugador, personaje_t rohan[MAX_PERSONAJES], int tope_rohan, int plus ){
@@ -214,6 +232,149 @@ void posicionar_personaje(juego_t* juego, personaje_t personaje){
     juego -> cantidad_isengard ++;
   }else{
     juego->terreno[personaje.fila][personaje.columna] = '_';
+  }
+}
 
+
+bool esta_muerto(int vida){
+if (vida <= SIN_VIDA){
+  return true;
+}else
+  return false;
+}
+int modulo(int numero){
+  if (numero < 0)
+  return -numero;
+}
+
+bool rango_amplio( int fila_atacante, int columna_atacante, int fila_objetivo, int columna_objetivo ){
+  int diferencia_fila = fila_atacante - fila_objetivo;
+  int diferencia_columna = columna_atacante - columna_objetivo;
+  if ( ( modulo(diferencia_fila) + modulo (diferencia_columna)) <= 3 )
+    return true;
+  else
+    return false;
+}
+
+bool rango_corto(int fila_atacante, int columna_atacante, int fila_objetivo, int fila_objetivo){
+
+}
+
+void evaluar_llegadas(int* llegadas_rohan, int* llegadas_isengard, personaje_t* personaje ){
+  if (personaje->codigo == HOMBRES){
+    if(personaje->fila == FILA_LLEGADAS_ROHAN &&  personaje->llego = false){
+      personaje->llego = true;
+      personaje->ataque = 0;
+      personaje->vida = 0;
+      llegadas_rohan++;
+    }
+  }else{
+    if(personaje->fila == FILA_LLEGADAS_ISENGARD &&  personaje->llego = false){
+      personaje->llego = true;
+      personaje->ataque = 0;
+      personaje->vida = 0;
+      llegadas_isengard++;
+    }
+  }
+}
+
+void morir(personaje_t* caido, char terreno){
+  caido.muerto = true;
+  caido.ataque = 0;
+  caido.vida = 0;
+  terreno[caido.fila][caido.columna] = '_'
+}
+
+void atacar_elfo_urukhai ( personaje_t atacante, personaje_t enemigos[MAX_PERSONAJES],int tope_enemigos, char terreno[MAX_TERRENO_FIL][MAX_TERRENO_COL] ){
+  bool en_rango;
+  if( atacante.codigo == ELFOS ){
+    for (int i =0; i <tope_enemigos; i++){
+      enemigos[i].muerto = esta_muerto(enemigos[i].vida);
+      en_rango = rango_amplio( atacante.fila, atacante.columna, enemigos[i].fila, enemigos[i].columna);
+      if (enemigos[i].muerto = false && en_rango = true){
+        enemigos[i].vida= enemigos[i].vida - atacante.ataque;
+      }if(enemigos[i].vida <= SIN_VIDA){
+          morir(&enemigos[i], terreno);
+        }
+      }
+    }else{
+      for(int i = 0; i <tope_enemigos; i++){
+        enemigos[i].muerto = esta_muerto(enemigos[i].vida);
+        en_rango = rango_amplio( atacante.fila, atacante.columna, enemigos[i].fila, enemigos[i].columna);
+        if (enemigos[i].muerto = false && en_rango = true){
+          enemigos[i].vida= enemigos[i].vida - atacante.ataque;
+        }if(enemigos[i].vida <= SIN_VIDA){
+            morir(&enemigos[i], terreno);
+        }
+      }
+    }
+}
+
+void mover_hombres_orcos( char terreno[MAX_TERRENO_FIL][MAX_TERRENO_COL], personaje_t* personaje ){
+  if(personaje->codigo == HOMBRES){
+    personaje->fila--;
+    if(terreno[personaje->fila][personaje->columna] == ELFOS ){
+      personaje->fila --;
+    }
+  }else{
+    personaje->fila ++;
+    if(terreno[personaje->fila][personaje->columna] == URUKHAI){
+      personaje->fila ++;
+    }
+  }
+}
+
+void atacar_mover_hombres_orcos( juego_t* juego, personaje_t* atacante ){
+  bool en_rango = false;
+  int i = 0;
+  int j = 0;
+  if(atacante.codigo == HOMBRES){
+    while ( ( (juego->isengard[i].muerto = false) && (en_rango = false) ) || i < juego->cantidad_isengard ){
+      juego->isengard[i].muerto = esta_muerto(juego->isengard[i].vida);
+      en_rango = rango_corto( atacante.fila, atacante.columna, juego->isengard[i].fila, juego->isengard[i].columna );
+      i++;
+    }
+    if ( juego->isengard[i].muerto = false && en_rango = true ){
+      juego->isengard[i].vida = juego.isengard[i].vida - atacante.ataque;
+      if (juego->isengard[i].vida <= SIN_VIDA){
+        morir(&juego->isengard[i], juego.terreno);
+      }
+    }else{
+      mover_hombres_orcos(juego.terreno, &atacante);
+    }
+  }else{
+    while ( ( (juego->rohan[i].muerto = false) && (en_rango = false) ) || i < juego->cantidad_rohan ){
+      juego->rohan[i].muerto = esta_muerto(juego->rohan[i].vida);
+      en_rango = rango_corto( atacante.fila, atacante.columna, juego->rohan[i].fila, juego->rohan[i].columna );
+      i++;
+    }
+    if ( juego->rohan[i].muerto = false && en_rango = true ){
+      juego->rohan[i].vida = juego.rohan[i].vida - atacante.ataque;
+      if (juego->rohan[i].vida <= SIN_VIDA){
+        morir(&juego->rohan[i], juego.terreno);
+      }
+    }else{
+      mover_hombres_orcos(juego.terreno, &atacante);
+    }
+  }
+}
+
+void jugar(juego_t* juego, char bando, int posicion_personaje){
+  if(bando== ROHAN){
+    juego->rohan[posicion_personaje].muerto = esta_muerto(juego.rohan[posicion_personaje].vida);
+    if (juego->rohan[posicion_personaje].muerto = false && juego->rohan[posicion_personaje].codigo == ELFOS){
+      atacar_elfo_urukhai( juego->rohan[posicion_personaje], juego->isengard, juego->cantidad_isengard, juego.terreno[MAX_TERRENO_FIL][MAX_TERRENO_COL] );
+    }else if(juego.rohan[posicion_personaje].muerto = false){
+      atacar_mover_hombres_orcos( &juego, &juego->rohan[posicion_personaje]);
+      evaluar_llegadas( &juego->llegadas_rohan, &juego->llegadas_isengard, &juego->rohan[posicion_personaje] );
+    }
+  }else{
+    juego.isengard[posicion_personaje].muerto = esta_muerto( juego->isengard[posicion_personaje].vida );
+    if (juego->isengard[posicion_personaje].muerto = false && juego->isengard[posicion_personaje].codigo == URUKHAI){
+      atacar_elfo_urukhai ( juego->isengard[posicion_personaje], juego->rohan );
+    }else if (juego->isengard[posicion_personaje].muerto = false){
+      atacar_mover_hombres_orcos(&juego, &juego->isengard[posicion_personaje]);
+      evaluar_llegadas( &juego->llegadas_rohan, &juego->llegadas_isengard, &juego->isengard[posicion_personaje] );
+    }
   }
 }
