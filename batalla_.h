@@ -8,6 +8,10 @@
 #define MAX_PERSONAJES 60
 
 const int LLEGADAS_GANAR = 5;
+const int LLEGADAS_GANAR = 5;
+const int ENERGIA_HOMBRES_ORCOS = 3;
+const int ENERGIA_ELFOS_URUKHAI = 8;
+const int UNIDADES_INICIALES = 3;
 
 typedef struct jugador{
   char bando;
