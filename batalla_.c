@@ -256,8 +256,12 @@ bool rango_amplio( int fila_atacante, int columna_atacante, int fila_objetivo, i
     return false;
 }
 
-bool rango_corto(int fila_atacante, int columna_atacante, int fila_objetivo, int fila_objetivo){
-
+bool rango_corto(int fila_atacante, int columna_atacante, char terreno [MAX_TERRENO_FIL][MAX_TERRENO_COL]){
+  int tope_filas = fila_atacante + 2;
+  int tope_columnas = columna_atacante + 2;
+  int i = fila_atacante -1;
+  int j = columna_atacante -1;
+  while(  )
 }
 
 void evaluar_llegadas(int* llegadas_rohan, int* llegadas_isengard, personaje_t* personaje ){
